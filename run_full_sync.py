@@ -2,6 +2,7 @@ import json
 
 from sssl.discover_hola_teams import discover_hola_teams
 from sssl.fetch_team_schedule import fetch_team_schedule
+from sheets.write_games import write_games_to_sheet
 
 
 def main():
@@ -61,6 +62,7 @@ def main():
         "w",
         encoding="utf-8"
     ) as f:
+
         json.dump(
             all_games,
             f,
@@ -68,6 +70,14 @@ def main():
         )
 
     print("Saved all_games.json")
+
+    print()
+    print("Writing SSSL_Games sheet...")
+    print()
+
+    write_games_to_sheet(
+        all_games
+    )
 
     print()
     print("First 5 games:")
