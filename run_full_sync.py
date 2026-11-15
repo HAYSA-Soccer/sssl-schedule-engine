@@ -1,9 +1,26 @@
 import json
+import os
+
+import gspread
+
+from google.oauth2.service_account import Credentials
 
 from sssl.discover_hola_teams import discover_hola_teams
 from sssl.fetch_team_schedule import fetch_team_schedule
 from sheets.write_games import write_games_to_sheet
+from sheets.write_dashboard import write_dashboard_to_sheet
+from audit.generate_dashboard import generate_dashboard
 from mapping.load_mappings import load_mappings
+
+
+SERVICE_ACCOUNT_INFO = json.loads(
+    os.environ["GOOGLE_SERVICE_ACCOUNT_KEY"]
+)
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
 
 
 def main():
@@ -57,14 +74,18 @@ def main():
                 "HOLA" in game["home"].upper()
             )
 
+            #
             # Team translation
+            #
 
             game["haysa_team"] = team_map.get(
                 team_name,
                 ""
             )
 
+            #
             # Opponent translation
+            #
 
             if game["hola_is_home"]:
                 opponent_team = game["visitor"]
@@ -82,19 +103,19 @@ def main():
                 opponent_code
             )
 
+            #
             # Field translation
+            #
 
             location_text = game.get(
                 "location",
                 ""
             ).strip()
 
-            # First try exact match against Location_Mapping
             field_info = field_map.get(
                 location_text
             )
 
-            # If not found, fall back to parsed field name
             if not field_info:
 
                 sssl_field = ""
@@ -123,9 +144,13 @@ def main():
                 ""
             )
 
-            unique_games[game["event_id"]] = game
+            unique_games[
+                game["event_id"]
+            ] = game
 
-    all_games = list(unique_games.values())
+    all_games = list(
+        unique_games.values()
+    )
 
     all_games.sort(
         key=lambda x: (
@@ -136,7 +161,10 @@ def main():
 
     print()
     print("=" * 60)
-    print(f"TOTAL UNIQUE GAMES: {len(all_games)}")
+    print(
+        f"TOTAL UNIQUE GAMES: "
+        f"{len(all_games)}"
+    )
     print("=" * 60)
     print()
 
@@ -160,6 +188,57 @@ def main():
 
     write_games_to_sheet(
         all_games
+    )
+
+    #
+    # Dashboard Generation
+    #
+
+    print()
+    print("Loading Events...")
+    print()
+
+    creds = Credentials.from_service_account_info(
+        SERVICE_ACCOUNT_INFO,
+        scopes=SCOPES
+    )
+
+    client = gspread.authorize(
+        creds
+    )
+
+    spreadsheet = client.open_by_key(
+        os.environ["GOOGLE_SHEET_ID"]
+    )
+
+    events_sheet = spreadsheet.worksheet(
+        "Events"
+    )
+
+    events = (
+        events_sheet.get_all_records()
+    )
+
+    print(
+        f"Loaded {len(events)} event rows"
+    )
+
+    print()
+    print("Generating Dashboard...")
+    print()
+
+    dashboard_rows = generate_dashboard(
+        all_games,
+        events
+    )
+
+    write_dashboard_to_sheet(
+        dashboard_rows
+    )
+
+    print(
+        f"Dashboard updated with "
+        f"{len(dashboard_rows)} items"
     )
 
     print()
