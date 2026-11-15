@@ -23,21 +23,26 @@ def write_dashboard_to_sheet(rows):
         scopes=SCOPES
     )
 
-    client = gspread.authorize(creds)
+    client = gspread.authorize(
+        creds
+    )
 
     spreadsheet = client.open_by_key(
         os.environ["GOOGLE_SHEET_ID"]
     )
 
     try:
+
         sheet = spreadsheet.worksheet(
             "Dashboard"
         )
+
     except Exception:
+
         sheet = spreadsheet.add_worksheet(
             title="Dashboard",
             rows=2000,
-            cols=20
+            cols=30
         )
 
     header = [
@@ -46,6 +51,9 @@ def write_dashboard_to_sheet(rows):
 
         "team",
         "opponent",
+
+        "ts_team",
+        "ts_opponent",
 
         "sssl_date",
         "ts_date",
@@ -56,9 +64,12 @@ def write_dashboard_to_sheet(rows):
         "sssl_field",
         "ts_field",
 
+        "ts_field_display",
+
         "action_required",
 
         "event_id"
+
     ]
 
     data = []
@@ -79,6 +90,16 @@ def write_dashboard_to_sheet(rows):
 
             row.get(
                 "opponent",
+                ""
+            ),
+
+            row.get(
+                "ts_team",
+                ""
+            ),
+
+            row.get(
+                "ts_opponent",
                 ""
             ),
 
@@ -113,6 +134,11 @@ def write_dashboard_to_sheet(rows):
             ),
 
             row.get(
+                "ts_field_display",
+                ""
+            ),
+
+            row.get(
                 "action_required",
                 ""
             ),
@@ -126,7 +152,9 @@ def write_dashboard_to_sheet(rows):
 
     sheet.clear()
 
-    sheet.append_row(header)
+    sheet.append_row(
+        header
+    )
 
     if data:
 
