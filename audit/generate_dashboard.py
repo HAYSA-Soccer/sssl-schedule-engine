@@ -45,12 +45,12 @@ def normalize_time(value):
     return value
 
 
-def parse_event_summary(summary):
+def parse_event_summary(text):
 
-    if " vs. " not in summary:
+    if " vs. " not in text:
         return "", ""
 
-    team, opponent = summary.split(
+    team, opponent = text.split(
         " vs. ",
         1
     )
@@ -69,7 +69,7 @@ def generate_dashboard(
     dashboard_rows = []
 
     #
-    # Only active TS games
+    # Active TS game events only
     #
 
     ts_games = []
@@ -84,7 +84,7 @@ def generate_dashboard(
             ts_games.append(event)
 
     #
-    # Build TS lookup
+    # Build lookup
     #
 
     ts_lookup = {}
@@ -92,7 +92,10 @@ def generate_dashboard(
     for event in ts_games:
 
         team, opponent = parse_event_summary(
-            event.get("summary", "")
+            event.get(
+                "team",
+                ""
+            )
         )
 
         key = (
@@ -143,11 +146,32 @@ def generate_dashboard(
                         ""
                     ),
 
+                "sssl_date":
+                    game.get(
+                        "date",
+                        ""
+                    ),
+
+                "sssl_time":
+                    game.get(
+                        "start_time",
+                        ""
+                    ),
+
+                "sssl_field":
+                    game.get(
+                        "ts_field_code",
+                        ""
+                    ),
+
+                "ts_date": "",
+
+                "ts_time": "",
+
+                "ts_field": "",
+
                 "action_required":
-                    f"Create game on "
-                    f"{game.get('date')} "
-                    f"at "
-                    f"{game.get('start_time')}",
+                    "Create TeamSideline game",
 
                 "event_id": ""
 
@@ -156,10 +180,6 @@ def generate_dashboard(
             continue
 
         changes = []
-
-        #
-        # Date
-        #
 
         sssl_date = normalize_date(
             game.get(
@@ -182,14 +202,8 @@ def generate_dashboard(
         ):
 
             changes.append(
-                f"Change date "
-                f"from {ts_date} "
-                f"to {sssl_date}"
+                f"Date: {ts_date} -> {sssl_date}"
             )
-
-        #
-        # Time
-        #
 
         sssl_time = normalize_time(
             game.get(
@@ -212,14 +226,8 @@ def generate_dashboard(
         ):
 
             changes.append(
-                f"Change time "
-                f"from {ts_time} "
-                f"to {sssl_time}"
+                f"Time: {ts_time} -> {sssl_time}"
             )
-
-        #
-        # Field
-        #
 
         sssl_field = (
             game.get(
@@ -244,14 +252,8 @@ def generate_dashboard(
         ):
 
             changes.append(
-                f"Change field "
-                f"from {ts_field} "
-                f"to {sssl_field}"
+                f"Field: {ts_field} -> {sssl_field}"
             )
-
-        #
-        # Update needed
-        #
 
         if changes:
 
@@ -271,8 +273,44 @@ def generate_dashboard(
                         ""
                     ),
 
+                "sssl_date":
+                    game.get(
+                        "date",
+                        ""
+                    ),
+
+                "sssl_time":
+                    game.get(
+                        "start_time",
+                        ""
+                    ),
+
+                "sssl_field":
+                    game.get(
+                        "ts_field_code",
+                        ""
+                    ),
+
+                "ts_date":
+                    ts_game.get(
+                        "date",
+                        ""
+                    ),
+
+                "ts_time":
+                    ts_game.get(
+                        "start_time",
+                        ""
+                    ),
+
+                "ts_field":
+                    ts_game.get(
+                        "field",
+                        ""
+                    ),
+
                 "action_required":
-                    ". ".join(changes),
+                    "; ".join(changes),
 
                 "event_id":
                     ts_game.get(
@@ -283,10 +321,11 @@ def generate_dashboard(
             })
 
     #
-    # Extra games in TS
+    # TS games not found in SSSL
     #
 
     sssl_keys = {
+
         (
             game.get(
                 "haysa_team",
@@ -297,14 +336,16 @@ def generate_dashboard(
                 ""
             )
         )
+
         for game in sssl_games
+
     }
 
     for event in ts_games:
 
         team, opponent = parse_event_summary(
             event.get(
-                "summary",
+                "team",
                 ""
             )
         )
@@ -324,9 +365,32 @@ def generate_dashboard(
 
                 "opponent": opponent,
 
+                "sssl_date": "",
+
+                "sssl_time": "",
+
+                "sssl_field": "",
+
+                "ts_date":
+                    event.get(
+                        "date",
+                        ""
+                    ),
+
+                "ts_time":
+                    event.get(
+                        "start_time",
+                        ""
+                    ),
+
+                "ts_field":
+                    event.get(
+                        "field",
+                        ""
+                    ),
+
                 "action_required":
-                    "Game exists in TeamSideline "
-                    "but not in SSSL. Review.",
+                    "Exists in TeamSideline but not in SSSL",
 
                 "event_id":
                     event.get(
