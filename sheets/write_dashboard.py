@@ -36,15 +36,28 @@ def write_dashboard_to_sheet(rows):
     except Exception:
         sheet = spreadsheet.add_worksheet(
             title="Dashboard",
-            rows=1000,
+            rows=2000,
             cols=20
         )
 
     header = [
+
         "status",
+
         "team",
         "opponent",
+
+        "sssl_date",
+        "ts_date",
+
+        "sssl_time",
+        "ts_time",
+
+        "sssl_field",
+        "ts_field",
+
         "action_required",
+
         "event_id"
     ]
 
@@ -53,11 +66,62 @@ def write_dashboard_to_sheet(rows):
     for row in rows:
 
         data.append([
-            row.get("status", ""),
-            row.get("team", ""),
-            row.get("opponent", ""),
-            row.get("action_required", ""),
-            row.get("event_id", "")
+
+            row.get(
+                "status",
+                ""
+            ),
+
+            row.get(
+                "team",
+                ""
+            ),
+
+            row.get(
+                "opponent",
+                ""
+            ),
+
+            row.get(
+                "sssl_date",
+                ""
+            ),
+
+            row.get(
+                "ts_date",
+                ""
+            ),
+
+            row.get(
+                "sssl_time",
+                ""
+            ),
+
+            row.get(
+                "ts_time",
+                ""
+            ),
+
+            row.get(
+                "sssl_field",
+                ""
+            ),
+
+            row.get(
+                "ts_field",
+                ""
+            ),
+
+            row.get(
+                "action_required",
+                ""
+            ),
+
+            row.get(
+                "event_id",
+                ""
+            )
+
         ])
 
     sheet.clear()
@@ -65,6 +129,7 @@ def write_dashboard_to_sheet(rows):
     sheet.append_row(header)
 
     if data:
+
         sheet.append_rows(
             data,
             value_input_option="USER_ENTERED"
