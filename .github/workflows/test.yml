@@ -20,4 +20,4 @@ jobs:
 
       - name: Run test
         run: |
-          python fetch_test.py
+          python parse_team_schedule.py
