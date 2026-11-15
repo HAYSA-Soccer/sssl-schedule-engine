@@ -3,12 +3,20 @@ import json
 from sssl.discover_hola_teams import discover_hola_teams
 from sssl.fetch_team_schedule import fetch_team_schedule
 from sheets.write_games import write_games_to_sheet
+from mapping.load_mappings import load_mappings
 
 
 def main():
 
     teams = discover_hola_teams()
 
+    mappings = load_mappings()
+    
+    team_map = mappings["team_map"]
+    town_map = mappings["town_map"]
+    field_map = mappings["field_map"]
+
+    
     print()
     print("=" * 60)
     print(f"Found {len(teams)} HOLA teams")
@@ -45,9 +53,63 @@ def main():
                 division = division.split("(")[0].strip()
             
             game["division"] = division
-            
+
             game["hola_is_home"] = (
                 "HOLA" in game["home"].upper()
+            )
+            
+            # Team translation
+            
+            game["haysa_team"] = team_map.get(
+                team_name,
+                ""
+            )
+            
+            # Opponent translation
+            
+            if game["hola_is_home"]:
+                opponent_team = game["visitor"]
+            else:
+                opponent_team = game["home"]
+            
+            opponent_code = (
+                opponent_team.strip().split()[0]
+                if opponent_team.strip()
+                else ""
+            )
+            
+            game["opponent_town"] = town_map.get(
+                opponent_code,
+                opponent_code
+            )
+            
+            # Field translation
+            
+            location_text = game.get(
+                "location",
+                ""
+            )
+            
+            sssl_field = ""
+            
+            if " - " in location_text:
+                sssl_field = location_text.split(
+                    "/"
+                )[-1].strip()
+            
+            field_info = field_map.get(
+                sssl_field,
+                {}
+            )
+            
+            game["ts_field_code"] = field_info.get(
+                "ts_field_code",
+                ""
+            )
+            
+            game["friendly_field_name"] = field_info.get(
+                "friendly_field_name",
+                ""
             )
 
             unique_games[game["event_id"]] = game
