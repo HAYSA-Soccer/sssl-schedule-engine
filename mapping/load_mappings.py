@@ -98,6 +98,14 @@ def load_mappings():
                 "friendly_field_name": friendly_field
             }
 
+
+    print("Sample field map:")
+    
+    for k, v in list(field_map.items())[:5]:
+        print(k)
+        print(v)
+    
+        
     return {
         "team_map": team_map,
         "town_map": town_map,
