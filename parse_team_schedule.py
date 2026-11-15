@@ -15,16 +15,15 @@ soup = BeautifulSoup(html, "html.parser")
 
 tables = soup.find_all("table")
 
-print(f"Found {len(tables)} tables")
+schedule_table = tables[12]
 
-for i, table in enumerate(tables):
-    text = table.get_text(" ", strip=True)
+rows = schedule_table.find_all("tr")
 
-    print("\n" + "=" * 80)
-    print(f"TABLE {i}")
-    print("=" * 80)
+print(f"Rows found: {len(rows)}")
 
-    print(text[:1500])
+for i, row in enumerate(rows[:15]):
+    cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
 
     print()
-    print()
+    print(f"ROW {i}")
+    print(cols)
