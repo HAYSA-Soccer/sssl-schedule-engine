@@ -45,20 +45,72 @@ def normalize_time(value):
     return value
 
 
-def parse_event_summary(text):
+def build_ts_game(event):
 
-    if " vs. " not in text:
-        return "", ""
+    matchup = event.get(
+        "team",
+        ""
+    ).strip()
 
-    team, opponent = text.split(
-        " vs. ",
-        1
-    )
+    ts_team = ""
+    ts_opponent = ""
 
-    return (
-        team.strip(),
-        opponent.strip()
-    )
+    if " vs. " in matchup:
+
+        ts_team, ts_opponent = matchup.split(
+            " vs. ",
+            1
+        )
+
+    return {
+
+        "ts_team":
+            ts_team.strip(),
+
+        "ts_opponent":
+            ts_opponent.strip(),
+
+        "ts_date":
+            normalize_date(
+                event.get(
+                    "date",
+                    ""
+                )
+            ),
+
+        "ts_time":
+            normalize_time(
+                event.get(
+                    "start_time",
+                    ""
+                )
+            ),
+
+        "ts_field":
+            event.get(
+                "field",
+                ""
+            ).strip(),
+
+        "ts_field_display":
+            event.get(
+                "field_display",
+                ""
+            ).strip(),
+
+        "event_id":
+            event.get(
+                "event_id",
+                ""
+            ),
+
+        "calendar_event_id":
+            event.get(
+                "calendar_event_id",
+                ""
+            )
+
+    }
 
 
 def generate_dashboard(
@@ -69,7 +121,7 @@ def generate_dashboard(
     dashboard_rows = []
 
     #
-    # Active TS game events only
+    # Active TS Game Events
     #
 
     ts_games = []
@@ -81,48 +133,50 @@ def generate_dashboard(
             and event.get("status") == "active"
         ):
 
-            ts_games.append(event)
+            ts_games.append(
+                build_ts_game(
+                    event
+                )
+            )
 
     #
-    # Build lookup
+    # Lookup
     #
 
     ts_lookup = {}
 
-    for event in ts_games:
-
-        team, opponent = parse_event_summary(
-            event.get(
-                "team",
-                ""
-            )
-        )
+    for game in ts_games:
 
         key = (
-            team,
-            opponent
+            game["ts_team"],
+            game["ts_opponent"]
         )
 
-        ts_lookup[key] = event
+        ts_lookup[key] = game
 
     #
     # Compare SSSL -> TS
     #
 
-    for game in sssl_games:
+    for sssl_game in sssl_games:
 
         key = (
-            game.get(
+
+            sssl_game.get(
                 "haysa_team",
                 ""
             ),
-            game.get(
+
+            sssl_game.get(
                 "opponent_town",
                 ""
             )
+
         )
 
-        ts_game = ts_lookup.get(key)
+        ts_game = ts_lookup.get(
+            key
+        )
 
         #
         # Missing from TS
@@ -135,40 +189,46 @@ def generate_dashboard(
                 "status": "CREATE",
 
                 "team":
-                    game.get(
+                    sssl_game.get(
                         "haysa_team",
                         ""
                     ),
 
                 "opponent":
-                    game.get(
+                    sssl_game.get(
                         "opponent_town",
                         ""
                     ),
 
                 "sssl_date":
-                    game.get(
+                    sssl_game.get(
                         "date",
                         ""
                     ),
 
                 "sssl_time":
-                    game.get(
+                    sssl_game.get(
                         "start_time",
                         ""
                     ),
 
                 "sssl_field":
-                    game.get(
+                    sssl_game.get(
                         "ts_field_code",
                         ""
                     ),
+
+                "ts_team": "",
+
+                "ts_opponent": "",
 
                 "ts_date": "",
 
                 "ts_time": "",
 
                 "ts_field": "",
+
+                "ts_field_display": "",
 
                 "action_required":
                     "Create TeamSideline game",
@@ -182,14 +242,7 @@ def generate_dashboard(
         changes = []
 
         sssl_date = normalize_date(
-            game.get(
-                "date",
-                ""
-            )
-        )
-
-        ts_date = normalize_date(
-            ts_game.get(
+            sssl_game.get(
                 "date",
                 ""
             )
@@ -197,23 +250,18 @@ def generate_dashboard(
 
         if (
             sssl_date
-            and ts_date
-            and sssl_date != ts_date
+            and ts_game["ts_date"]
+            and sssl_date != ts_game["ts_date"]
         ):
 
             changes.append(
-                f"Date: {ts_date} -> {sssl_date}"
+                f"Date: "
+                f"{ts_game['ts_date']} -> "
+                f"{sssl_date}"
             )
 
         sssl_time = normalize_time(
-            game.get(
-                "start_time",
-                ""
-            )
-        )
-
-        ts_time = normalize_time(
-            ts_game.get(
+            sssl_game.get(
                 "start_time",
                 ""
             )
@@ -221,25 +269,19 @@ def generate_dashboard(
 
         if (
             sssl_time
-            and ts_time
-            and sssl_time != ts_time
+            and ts_game["ts_time"]
+            and sssl_time != ts_game["ts_time"]
         ):
 
             changes.append(
-                f"Time: {ts_time} -> {sssl_time}"
+                f"Time: "
+                f"{ts_game['ts_time']} -> "
+                f"{sssl_time}"
             )
 
         sssl_field = (
-            game.get(
+            sssl_game.get(
                 "ts_field_code",
-                ""
-            )
-            .strip()
-        )
-
-        ts_field = (
-            ts_game.get(
-                "field",
                 ""
             )
             .strip()
@@ -247,12 +289,14 @@ def generate_dashboard(
 
         if (
             sssl_field
-            and ts_field
-            and sssl_field != ts_field
+            and ts_game["ts_field"]
+            and sssl_field != ts_game["ts_field"]
         ):
 
             changes.append(
-                f"Field: {ts_field} -> {sssl_field}"
+                f"Field: "
+                f"{ts_game['ts_field']} -> "
+                f"{sssl_field}"
             )
 
         if changes:
@@ -262,97 +306,105 @@ def generate_dashboard(
                 "status": "UPDATE",
 
                 "team":
-                    game.get(
+                    sssl_game.get(
                         "haysa_team",
                         ""
                     ),
 
                 "opponent":
-                    game.get(
+                    sssl_game.get(
                         "opponent_town",
                         ""
                     ),
 
                 "sssl_date":
-                    game.get(
+                    sssl_game.get(
                         "date",
                         ""
                     ),
 
                 "sssl_time":
-                    game.get(
+                    sssl_game.get(
                         "start_time",
                         ""
                     ),
 
                 "sssl_field":
-                    game.get(
+                    sssl_game.get(
                         "ts_field_code",
                         ""
                     ),
 
+                "ts_team":
+                    ts_game[
+                        "ts_team"
+                    ],
+
+                "ts_opponent":
+                    ts_game[
+                        "ts_opponent"
+                    ],
+
                 "ts_date":
-                    ts_game.get(
-                        "date",
-                        ""
-                    ),
+                    ts_game[
+                        "ts_date"
+                    ],
 
                 "ts_time":
-                    ts_game.get(
-                        "start_time",
-                        ""
-                    ),
+                    ts_game[
+                        "ts_time"
+                    ],
 
                 "ts_field":
-                    ts_game.get(
-                        "field",
-                        ""
-                    ),
+                    ts_game[
+                        "ts_field"
+                    ],
+
+                "ts_field_display":
+                    ts_game[
+                        "ts_field_display"
+                    ],
 
                 "action_required":
-                    "; ".join(changes),
+                    "; ".join(
+                        changes
+                    ),
 
                 "event_id":
-                    ts_game.get(
-                        "calendar_event_id",
-                        ""
-                    )
+                    ts_game[
+                        "calendar_event_id"
+                    ]
 
             })
 
     #
-    # TS games not found in SSSL
+    # TS Games Missing From SSSL
     #
 
     sssl_keys = {
 
         (
+
             game.get(
                 "haysa_team",
                 ""
             ),
+
             game.get(
                 "opponent_town",
                 ""
             )
+
         )
 
         for game in sssl_games
-
     }
 
-    for event in ts_games:
-
-        team, opponent = parse_event_summary(
-            event.get(
-                "team",
-                ""
-            )
-        )
+    for ts_game in ts_games:
 
         key = (
-            team,
-            opponent
+            ts_game["ts_team"],
+            ts_game["ts_opponent"]
         )
 
         if key not in sssl_keys:
@@ -361,9 +413,9 @@ def generate_dashboard(
 
                 "status": "REVIEW",
 
-                "team": team,
+                "team": "",
 
-                "opponent": opponent,
+                "opponent": "",
 
                 "sssl_date": "",
 
@@ -371,39 +423,53 @@ def generate_dashboard(
 
                 "sssl_field": "",
 
+                "ts_team":
+                    ts_game[
+                        "ts_team"
+                    ],
+
+                "ts_opponent":
+                    ts_game[
+                        "ts_opponent"
+                    ],
+
                 "ts_date":
-                    event.get(
-                        "date",
-                        ""
-                    ),
+                    ts_game[
+                        "ts_date"
+                    ],
 
                 "ts_time":
-                    event.get(
-                        "start_time",
-                        ""
-                    ),
+                    ts_game[
+                        "ts_time"
+                    ],
 
                 "ts_field":
-                    event.get(
-                        "field",
-                        ""
-                    ),
+                    ts_game[
+                        "ts_field"
+                    ],
+
+                "ts_field_display":
+                    ts_game[
+                        "ts_field_display"
+                    ],
 
                 "action_required":
                     "Exists in TeamSideline but not in SSSL",
 
                 "event_id":
-                    event.get(
-                        "calendar_event_id",
-                        ""
-                    )
+                    ts_game[
+                        "calendar_event_id"
+                    ]
 
             })
 
     dashboard_rows.sort(
         key=lambda x: (
             x["status"],
-            x["team"]
+            x.get(
+                "team",
+                ""
+            )
         )
     )
 
