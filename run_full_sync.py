@@ -36,6 +36,16 @@ def main():
 
             game["hola_team"] = team_name
 
+            division = team_name
+            
+            if division.startswith("HOLA "):
+                division = division[5:]
+            
+            if "(" in division:
+                division = division.split("(")[0].strip()
+            
+            game["division"] = division
+            
             game["hola_is_home"] = (
                 "HOLA" in game["home"].upper()
             )
