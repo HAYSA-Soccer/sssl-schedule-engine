@@ -24,4 +24,7 @@ for i, table in enumerate(tables):
     print(f"TABLE {i}")
     print("=" * 80)
 
-    print(text[:1000])
+    print(text[:1500])
+
+    print()
+    print()
