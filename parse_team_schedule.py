@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import json
 
 url = (
     "https://sssl.sportspilot.com/Scheduler/public/"
@@ -13,17 +14,32 @@ html = requests.get(
 
 soup = BeautifulSoup(html, "html.parser")
 
-tables = soup.find_all("table")
-
-schedule_table = tables[12]
+schedule_table = soup.find_all("table")[12]
 
 rows = schedule_table.find_all("tr")
 
-print(f"Rows found: {len(rows)}")
+games = []
 
-for i, row in enumerate(rows[:15]):
-    cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
+for row in rows[1:]:  # skip header
+    cols = [
+        c.get_text(" ", strip=True)
+        for c in row.find_all(["td", "th"])
+    ]
 
-    print()
-    print(f"ROW {i}")
-    print(cols)
+    if len(cols) < 10:
+        continue
+
+    games.append({
+        "event_id": cols[0],
+        "date": cols[1],
+        "start_time": cols[2],
+        "end_time": cols[3],
+        "day": cols[4],
+        "location": cols[5],
+        "visitor": cols[6],
+        "visitor_score": cols[7],
+        "home": cols[8],
+        "home_score": cols[9],
+    })
+
+print(json.dumps(games, indent=2))
