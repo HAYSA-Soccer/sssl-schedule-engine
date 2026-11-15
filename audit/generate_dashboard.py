@@ -1,3 +1,50 @@
+from datetime import datetime
+
+
+def normalize_date(value):
+
+    if not value:
+        return ""
+
+    value = str(value).strip()
+
+    for fmt in (
+        "%m/%d/%Y",
+        "%Y-%m-%d"
+    ):
+        try:
+            return datetime.strptime(
+                value,
+                fmt
+            ).strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+
+    return value
+
+
+def normalize_time(value):
+
+    if not value:
+        return ""
+
+    value = str(value).strip()
+
+    for fmt in (
+        "%I:%M %p",
+        "%H:%M"
+    ):
+        try:
+            return datetime.strptime(
+                value,
+                fmt
+            ).strftime("%H:%M")
+        except ValueError:
+            pass
+
+    return value
+
+
 def parse_event_summary(summary):
 
     if " vs. " not in summary:
@@ -37,7 +84,7 @@ def generate_dashboard(
             ts_games.append(event)
 
     #
-    # Build lookup
+    # Build TS lookup
     #
 
     ts_lookup = {}
@@ -75,7 +122,7 @@ def generate_dashboard(
         ts_game = ts_lookup.get(key)
 
         #
-        # Missing in TS
+        # Missing from TS
         #
 
         if not ts_game:
@@ -114,63 +161,81 @@ def generate_dashboard(
         # Date
         #
 
-        sssl_date = game.get(
-            "date",
-            ""
+        sssl_date = normalize_date(
+            game.get(
+                "date",
+                ""
+            )
         )
 
-        ts_date = ts_game.get(
-            "date",
-            ""
+        ts_date = normalize_date(
+            ts_game.get(
+                "date",
+                ""
+            )
         )
+
+        if (
+            sssl_date
+            and ts_date
+            and sssl_date != ts_date
+        ):
+
+            changes.append(
+                f"Change date "
+                f"from {ts_date} "
+                f"to {sssl_date}"
+            )
 
         #
         # Time
         #
 
-        sssl_time = game.get(
-            "start_time",
-            ""
+        sssl_time = normalize_time(
+            game.get(
+                "start_time",
+                ""
+            )
         )
 
-        ts_time = ts_game.get(
-            "start_time",
-            ""
+        ts_time = normalize_time(
+            ts_game.get(
+                "start_time",
+                ""
+            )
         )
+
+        if (
+            sssl_time
+            and ts_time
+            and sssl_time != ts_time
+        ):
+
+            changes.append(
+                f"Change time "
+                f"from {ts_time} "
+                f"to {sssl_time}"
+            )
 
         #
         # Field
         #
 
-        sssl_field = game.get(
-            "ts_field_code",
-            ""
+        sssl_field = (
+            game.get(
+                "ts_field_code",
+                ""
+            )
+            .strip()
         )
 
-        ts_field = ts_game.get(
-            "field",
-            ""
+        ts_field = (
+            ts_game.get(
+                "field",
+                ""
+            )
+            .strip()
         )
-
-        if sssl_date and ts_date:
-
-            if str(sssl_date) != str(ts_date):
-
-                changes.append(
-                    f"Change date "
-                    f"from {ts_date} "
-                    f"to {sssl_date}"
-                )
-
-        if sssl_time and ts_time:
-
-            if str(sssl_time) != str(ts_time):
-
-                changes.append(
-                    f"Change time "
-                    f"from {ts_time} "
-                    f"to {sssl_time}"
-                )
 
         if (
             sssl_field
@@ -183,6 +248,10 @@ def generate_dashboard(
                 f"from {ts_field} "
                 f"to {sssl_field}"
             )
+
+        #
+        # Update needed
+        #
 
         if changes:
 
@@ -214,8 +283,58 @@ def generate_dashboard(
             })
 
     #
-    # Summary row
+    # Extra games in TS
     #
+
+    sssl_keys = {
+        (
+            game.get(
+                "haysa_team",
+                ""
+            ),
+            game.get(
+                "opponent_town",
+                ""
+            )
+        )
+        for game in sssl_games
+    }
+
+    for event in ts_games:
+
+        team, opponent = parse_event_summary(
+            event.get(
+                "summary",
+                ""
+            )
+        )
+
+        key = (
+            team,
+            opponent
+        )
+
+        if key not in sssl_keys:
+
+            dashboard_rows.append({
+
+                "status": "REVIEW",
+
+                "team": team,
+
+                "opponent": opponent,
+
+                "action_required":
+                    "Game exists in TeamSideline "
+                    "but not in SSSL. Review.",
+
+                "event_id":
+                    event.get(
+                        "calendar_event_id",
+                        ""
+                    )
+
+            })
 
     dashboard_rows.sort(
         key=lambda x: (
