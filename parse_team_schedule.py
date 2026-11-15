@@ -11,11 +11,17 @@ html = requests.get(
     headers={"User-Agent": "Mozilla/5.0"}
 ).text
 
-with open("debug.html", "w", encoding="utf-8") as f:
-    f.write(html)
-
-print("Downloaded", len(html), "characters")
-
 soup = BeautifulSoup(html, "html.parser")
 
-print("Tables found:", len(soup.find_all("table")))
+tables = soup.find_all("table")
+
+print(f"Found {len(tables)} tables")
+
+for i, table in enumerate(tables):
+    text = table.get_text(" ", strip=True)
+
+    print("\n" + "=" * 80)
+    print(f"TABLE {i}")
+    print("=" * 80)
+
+    print(text[:1000])
