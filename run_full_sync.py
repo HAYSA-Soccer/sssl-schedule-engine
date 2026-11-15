@@ -1,12 +1,7 @@
 import json
 
-from sssl.discover_hola_teams import (
-    discover_hola_teams
-)
-
-from sssl.fetch_team_schedule import (
-    fetch_team_schedule
-)
+from sssl.discover_hola_teams import discover_hola_teams
+from sssl.fetch_team_schedule import fetch_team_schedule
 
 
 def main():
@@ -14,40 +9,75 @@ def main():
     teams = discover_hola_teams()
 
     print()
+    print("=" * 60)
     print(f"Found {len(teams)} HOLA teams")
+    print("=" * 60)
     print()
 
-    all_games = []
+    unique_games = {}
 
     for team in teams:
 
-        print(
-            f"Fetching {team['team_name']}"
-        )
+        team_name = team["team_name"]
+        contest_id = team["contest_id"]
+        team_id = team["team_id"]
+
+        print(f"Fetching: {team_name}")
 
         games = fetch_team_schedule(
-            team["contest_id"],
-            team["team_id"]
+            contest_id,
+            team_id
         )
 
-        print(
-            f"  Found {len(games)} games"
+        print(f"  Found {len(games)} games")
+
+        for game in games:
+
+            game["hola_team"] = team_name
+
+            game["hola_is_home"] = (
+                "HOLA" in game["home"].upper()
+            )
+
+            unique_games[game["event_id"]] = game
+
+    all_games = list(unique_games.values())
+
+    all_games.sort(
+        key=lambda x: (
+            x["date"],
+            x["start_time"]
         )
-
-        all_games.extend(games)
-
-    print()
-    print(
-        f"Total Games Retrieved: {len(all_games)}"
     )
 
+    print()
+    print("=" * 60)
+    print(f"TOTAL UNIQUE GAMES: {len(all_games)}")
+    print("=" * 60)
+    print()
+
+    with open(
+        "all_games.json",
+        "w",
+        encoding="utf-8"
+    ) as f:
+        json.dump(
+            all_games,
+            f,
+            indent=2
+        )
+
+    print("Saved all_games.json")
+
+    print()
+    print("First 5 games:")
     print()
 
     print(
         json.dumps(
-            all_games,
+            all_games[:5],
             indent=2
-        )[:5000]
+        )
     )
 
 
