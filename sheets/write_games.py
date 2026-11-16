@@ -2,6 +2,7 @@ import json
 import os
 
 import gspread
+from datetime import datetime
 
 from google.oauth2.service_account import Credentials
 
@@ -109,7 +110,5 @@ def write_games_to_sheet(games):
         )
 
     print(
-        f"Wrote {len(rows)} games to SSSL_Games"
-    )
         f"Wrote {len(rows)} games to SSSL_Games"
     )
