@@ -253,6 +253,8 @@ def generate_dashboard(
                         ""
                     ),
 
+                "raw_matchup": "",
+                
                 "ts_team": "",
 
                 "ts_opponent": "",
@@ -351,6 +353,9 @@ def generate_dashboard(
                         ""
                     ),
 
+                "raw_matchup":
+                    ts_game["raw_matchup"],
+
                 "ts_team":
                     ts_game["ts_team"],
 
@@ -440,6 +445,9 @@ def generate_dashboard(
 
                 "sssl_field": "",
 
+                "raw_matchup":
+                    ts_game["raw_matchup"],
+                                
                 "ts_team":
                     ts_game["ts_team"],
 
