@@ -78,7 +78,7 @@ def write_status_json(
     }
 
     with open(
-        "schedule_status.json",
+        "status_output_debug.json",
         "w",
         encoding="utf-8"
     ) as f:
@@ -90,5 +90,8 @@ def write_status_json(
         )
 
     print(
-        "schedule_status.json generated"
+        json.dumps(
+            output,
+            indent=2
+        )
     )
