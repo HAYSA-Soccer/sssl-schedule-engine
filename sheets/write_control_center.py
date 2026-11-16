@@ -46,23 +46,23 @@ def write_control_center(
 
         sheet = spreadsheet.add_worksheet(
             title="Control_Center",
-            rows=500,
+            rows=1000,
             cols=20
         )
 
     create_count = sum(
         1 for r in dashboard_rows
-        if r["status"] == "CREATE"
+        if r.get("status") == "CREATE"
     )
 
     update_count = sum(
         1 for r in dashboard_rows
-        if r["status"] == "UPDATE"
+        if r.get("status") == "UPDATE"
     )
 
     review_count = sum(
         1 for r in dashboard_rows
-        if r["status"] == "REVIEW"
+        if r.get("status") == "REVIEW"
     )
 
     timestamp = datetime.now().strftime(
@@ -71,4 +71,85 @@ def write_control_center(
 
     rows = [
 
-        ["
+        ["HAYSA Schedule Control Center"],
+        [],
+
+        ["Last SSSL Sync", timestamp],
+
+        [],
+
+        ["SSSL Games", len(all_games)],
+        ["TS Games", len(ts_games)],
+
+        [],
+
+        ["CREATE", create_count],
+        ["UPDATE", update_count],
+        ["REVIEW", review_count],
+
+        [],
+
+        ["ACTION ITEMS"],
+
+        [],
+
+        [
+            "Status",
+            "Team",
+            "Opponent",
+            "Date",
+            "Action"
+        ]
+
+    ]
+
+    for row in dashboard_rows:
+
+        rows.append([
+
+            row.get(
+                "status",
+                ""
+            ),
+
+            row.get(
+                "team",
+                row.get(
+                    "ts_team",
+                    ""
+                )
+            ),
+
+            row.get(
+                "opponent",
+                row.get(
+                    "ts_opponent",
+                    ""
+                )
+            ),
+
+            row.get(
+                "sssl_date",
+                row.get(
+                    "ts_date",
+                    ""
+                )
+            ),
+
+            row.get(
+                "action_required",
+                ""
+            )
+
+        ])
+
+    sheet.clear()
+
+    sheet.update(
+        range_name="A1",
+        values=rows
+    )
+
+    print(
+        "Control Center updated"
+    )
