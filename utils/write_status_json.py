@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 def write_status_json(
@@ -83,7 +84,11 @@ def write_status_json(
     output = {
 
         "lastSync":
-            datetime.now().strftime(
+            datetime.now(
+                ZoneInfo(
+                    "America/New_York"
+                )
+            ).strftime(
                 "%Y-%m-%d %I:%M %p"
             ),
 
