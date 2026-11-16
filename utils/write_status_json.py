@@ -27,32 +27,23 @@ def write_status_json(
         if row.get("status") == "REVIEW"
     )
 
-        active_issues = (
-            create_count
-            + update_count
-            + review_count
-        )
+    active_issues = (
+        create_count
+        + update_count
+        + review_count
+    )
+
+    coverage = (
+        100.0
+        if active_issues == 0
+        else 0.0
+    )
     
-        coverage = (
-            100.0
-            if active_issues == 0
-            else round(
-                (
-                    (
-                        len(all_games)
-                        - active_issues
-                    )
-                    / len(all_games)
-                ) * 100,
-                1
-            )
-        )
-    
-        status = (
-            "Healthy"
-            if active_issues == 0
-            else "Attention Required"
-        )
+    status = (
+        "Healthy"
+        if active_issues == 0
+        else "Attention Required"
+    )
 
     #
     # Team Status
