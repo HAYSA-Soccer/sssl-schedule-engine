@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 def normalize_date(value):
@@ -125,6 +126,11 @@ def generate_dashboard(
 ):
 
     dashboard_rows = []
+    
+    today = datetime.now(
+        ZoneInfo("America/New_York")
+    ).date()
+    
 
     ts_games = []
 
@@ -153,6 +159,23 @@ def generate_dashboard(
         ts_lookup[key] = game
 
     for sssl_game in sssl_games:
+        try:
+
+            game_date = datetime.strptime(
+                sssl_game.get(
+                    "date",
+                    ""
+                ),
+                "%m/%d/%Y"
+            ).date()
+
+            if game_date < today:
+                continue
+
+        except Exception:
+            pass
+
+
 
         sssl_team = (
             sssl_game.get(
