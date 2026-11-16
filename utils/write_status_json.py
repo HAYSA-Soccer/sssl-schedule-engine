@@ -78,7 +78,7 @@ def write_status_json(
     }
 
     with open(
-        "status_output_debug.json",
+        "schedule-status.json",
         "w",
         encoding="utf-8"
     ) as f:
