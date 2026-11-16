@@ -49,8 +49,11 @@ def build_ts_game(event):
 
     matchup = str(
         event.get(
-            "team",
-            ""
+            "summary",
+            event.get(
+                "team",
+                ""
+            )
         )
     ).strip()
 
