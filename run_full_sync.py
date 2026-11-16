@@ -7,8 +7,13 @@ from google.oauth2.service_account import Credentials
 
 from sssl.discover_hola_teams import discover_hola_teams
 from sssl.fetch_team_schedule import fetch_team_schedule
+
 from sheets.write_games import write_games_to_sheet
 from sheets.write_dashboard import write_dashboard_to_sheet
+from sheets.write_control_center import (
+    write_control_center
+)
+
 from audit.generate_dashboard import generate_dashboard
 from mapping.load_mappings import load_mappings
 
@@ -195,7 +200,7 @@ def main():
     #
 
     print()
-    print("Loading Events...")
+    print("Loading TS_Games...")
     print()
 
     creds = Credentials.from_service_account_info(
@@ -214,13 +219,13 @@ def main():
     ts_games_sheet = spreadsheet.worksheet(
         "TS_Games"
     )
-    
-    events = (
+
+    ts_games = (
         ts_games_sheet.get_all_records()
     )
 
     print(
-        f"Loaded {len(events)} event rows"
+        f"Loaded {len(ts_games)} TS game rows"
     )
 
     print()
@@ -229,7 +234,7 @@ def main():
 
     dashboard_rows = generate_dashboard(
         all_games,
-        events
+        ts_games
     )
 
     write_dashboard_to_sheet(
@@ -239,6 +244,24 @@ def main():
     print(
         f"Dashboard updated with "
         f"{len(dashboard_rows)} items"
+    )
+
+    #
+    # Control Center
+    #
+
+    print()
+    print("Updating Control_Center...")
+    print()
+
+    write_control_center(
+        all_games,
+        ts_games,
+        dashboard_rows
+    )
+
+    print(
+        "Control_Center updated."
     )
 
     print()
