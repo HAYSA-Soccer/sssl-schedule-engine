@@ -17,6 +17,10 @@ from sheets.write_control_center import (
 from audit.generate_dashboard import generate_dashboard
 from mapping.load_mappings import load_mappings
 
+from utils.write_status_json import (
+    write_status_json
+)
+
 
 SERVICE_ACCOUNT_INFO = json.loads(
     os.environ["GOOGLE_SERVICE_ACCOUNT_KEY"]
@@ -255,6 +259,12 @@ def main():
     print()
 
     write_control_center(
+        all_games,
+        ts_games,
+        dashboard_rows
+    )
+
+    write_status_json(
         all_games,
         ts_games,
         dashboard_rows
