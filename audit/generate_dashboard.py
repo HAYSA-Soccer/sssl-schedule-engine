@@ -77,7 +77,9 @@ def build_ts_game(event):
             break
 
     return {
-        "raw_matchup": matchup,
+
+        "raw_matchup":
+            matchup,
 
         "ts_team":
             ts_team.strip(),
@@ -85,7 +87,50 @@ def build_ts_game(event):
         "ts_opponent":
             ts_opponent.strip(),
 
-        ...
+        "ts_date":
+            normalize_date(
+                event.get(
+                    "date",
+                    ""
+                )
+            ),
+
+        "ts_time":
+            normalize_time(
+                event.get(
+                    "start_time",
+                    ""
+                )
+            ),
+
+        "ts_field":
+            str(
+                event.get(
+                    "field",
+                    ""
+                )
+            ).strip(),
+
+        "ts_field_display":
+            str(
+                event.get(
+                    "field_display",
+                    ""
+                )
+            ).strip(),
+
+        "event_id":
+            event.get(
+                "event_id",
+                ""
+            ),
+
+        "calendar_event_id":
+            event.get(
+                "calendar_event_id",
+                ""
+            )
+
     }
 
 
