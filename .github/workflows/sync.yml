@@ -12,8 +12,6 @@ on:
     # Once per hour from 9 PM–8 AM Eastern
     - cron: "0 1-11 * * *"
 
-    
-
 jobs:
 
   sync:
@@ -40,6 +38,41 @@ jobs:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: |
           python run_full_sync.py
+
+      #
+      # Clone coaches-hub
+      #
+
+      - name: Clone coaches-hub
+        run: |
+          git clone https://x-access-token:${{ secrets.COACHES_HUB_TOKEN }}@github.com/HAYSA-Soccer/coaches-hub.git
+
+      #
+      # Update dashboard JSON
+      #
+
+      - name: Update Dashboard Data
+        run: |
+          mkdir -p coaches-hub/docs/data
+          cp schedule-status.json coaches-hub/docs/data/schedule-status.json
+
+      #
+      # Commit and push changes
+      #
+
+      - name: Publish Dashboard Data
+        run: |
+          cd coaches-hub
+
+          git config user.name "HAYSA Bot"
+          git config user.email "actions@github.com"
+
+          git add docs/data/schedule-status.json
+
+          git diff --cached --quiet || \
+          git commit -m "Auto update schedule dashboard"
+
+          git push
 
       - name: Upload Games File
         uses: actions/upload-artifact@v4
