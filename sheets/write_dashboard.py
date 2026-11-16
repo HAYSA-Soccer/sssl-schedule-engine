@@ -52,6 +52,8 @@ def write_dashboard_to_sheet(rows):
         "team",
         "opponent",
 
+        "raw_matchup",
+
         "ts_team",
         "ts_opponent",
 
@@ -90,6 +92,12 @@ def write_dashboard_to_sheet(rows):
 
             row.get(
                 "opponent",
+                ""
+            ),
+
+
+            row.get(
+                "raw_matchup",
                 ""
             ),
 
