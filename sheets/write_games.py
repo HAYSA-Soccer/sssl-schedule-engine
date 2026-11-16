@@ -23,7 +23,9 @@ def write_games_to_sheet(games):
         scopes=SCOPES
     )
 
-    client = gspread.authorize(creds)
+    client = gspread.authorize(
+        creds
+    )
 
     spreadsheet = client.open_by_key(
         os.environ["GOOGLE_SHEET_ID"]
@@ -77,16 +79,37 @@ def write_games_to_sheet(games):
             g.get("location", "")
         ])
 
+    #
+    # Sort chronologically
+    #
+    rows.sort(
+        key=lambda r: (
+            datetime.strptime(
+                r[1],
+                "%m/%d/%Y"
+            ),
+            datetime.strptime(
+                r[2],
+                "%I:%M %p"
+            )
+        )
+    )
+
     sheet.clear()
 
-    sheet.append_row(header)
+    sheet.append_row(
+        header
+    )
 
     if rows:
+
         sheet.append_rows(
             rows,
             value_input_option="USER_ENTERED"
         )
 
     print(
+        f"Wrote {len(rows)} games to SSSL_Games"
+    )
         f"Wrote {len(rows)} games to SSSL_Games"
     )
