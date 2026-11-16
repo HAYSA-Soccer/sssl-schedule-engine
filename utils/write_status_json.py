@@ -91,7 +91,7 @@ def write_status_json(
                     "America/New_York"
                 )
             ).strftime(
-                "%Y-%m-%d %I:%M %p"
+                "%b %d, %Y %I:%M %p"
             ),
 
         "status":
