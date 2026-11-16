@@ -54,71 +54,38 @@ def build_ts_game(event):
         )
     ).strip()
 
+    separators = [
+        " vs. ",
+        " vs ",
+        " VS ",
+        " v. ",
+        " v "
+    ]
+
     ts_team = ""
     ts_opponent = ""
 
-    if " vs. " in matchup:
+    for separator in separators:
 
-        parts = matchup.split(
-            " vs. ",
-            1
-        )
+        if separator in matchup:
 
-        ts_team = parts[0].strip()
-        ts_opponent = parts[1].strip()
-
-    return {
-
-        "ts_team":
-            ts_team,
-
-        "ts_opponent":
-            ts_opponent,
-
-        "ts_date":
-            normalize_date(
-                event.get(
-                    "date",
-                    ""
-                )
-            ),
-
-        "ts_time":
-            normalize_time(
-                event.get(
-                    "start_time",
-                    ""
-                )
-            ),
-
-        "ts_field":
-            str(
-                event.get(
-                    "field",
-                    ""
-                )
-            ).strip(),
-
-        "ts_field_display":
-            str(
-                event.get(
-                    "field_display",
-                    ""
-                )
-            ).strip(),
-
-        "event_id":
-            event.get(
-                "event_id",
-                ""
-            ),
-
-        "calendar_event_id":
-            event.get(
-                "calendar_event_id",
-                ""
+            ts_team, ts_opponent = matchup.split(
+                separator,
+                1
             )
 
+            break
+
+    return {
+        "raw_matchup": matchup,
+
+        "ts_team":
+            ts_team.strip(),
+
+        "ts_opponent":
+            ts_opponent.strip(),
+
+        ...
     }
 
 
