@@ -40,8 +40,10 @@ def write_status_json(
     if create_count > 0:
         status = "Attention Required"
 
-    if len(ts_games) < len(all_games):
-        status = "Catching Up"
+    if create_count + update_count + review_count == 0:
+        status = "Healthy"
+    else:
+        status = "Attention Required"
 
     #
     # Team Status
