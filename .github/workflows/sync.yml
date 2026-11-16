@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
 
   schedule:
-
     # Every 5 minutes from 8 AM–9 PM Eastern
     - cron: "*/5 12-23 * * *"
     - cron: "*/5 0 * * *"
@@ -39,26 +38,14 @@ jobs:
         run: |
           python run_full_sync.py
 
-      #
-      # Clone coaches-hub
-      #
-
       - name: Clone coaches-hub
         run: |
           git clone https://x-access-token:${{ secrets.COACHES_HUB_TOKEN }}@github.com/HAYSA-Soccer/coaches-hub.git
-
-      #
-      # Update dashboard JSON
-      #
 
       - name: Update Dashboard Data
         run: |
           mkdir -p coaches-hub/docs/data
           cp schedule-status.json coaches-hub/docs/data/schedule-status.json
-
-      #
-      # Commit and push changes
-      #
 
       - name: Publish Dashboard Data
         run: |
@@ -69,10 +56,12 @@ jobs:
 
           git add docs/data/schedule-status.json
 
-          git diff --cached --quiet || \
-          git commit -m "Auto update schedule dashboard"
-
-          git push
+          if git diff --cached --quiet; then
+            echo "No dashboard changes detected"
+          else
+            git commit -m "Auto update schedule dashboard"
+            git push origin main
+          fi
 
       - name: Upload Games File
         uses: actions/upload-artifact@v4
