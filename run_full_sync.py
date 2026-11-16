@@ -211,12 +211,12 @@ def main():
         os.environ["GOOGLE_SHEET_ID"]
     )
 
-    events_sheet = spreadsheet.worksheet(
-        "Events"
+    ts_games_sheet = spreadsheet.worksheet(
+        "TS_Games"
     )
-
+    
     events = (
-        events_sheet.get_all_records()
+        ts_games_sheet.get_all_records()
     )
 
     print(
